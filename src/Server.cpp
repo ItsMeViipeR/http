@@ -73,3 +73,7 @@ void Server::run() {
 
   close(serverSocket); // Note: Inatteignable ici à cause du while(true)
 }
+
+void Server::setHost(std::string host) { m_host = host; }
+
+void Server::setPort(int port) { m_port = port; }

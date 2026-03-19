@@ -8,6 +8,8 @@ public:
   ~Server();
   void run();
   std::string constructResponse(int code, std::string response);
+  void setHost(std::string host);
+  void setPort(int port);
 
 private:
   std::string m_host = "localhost";
