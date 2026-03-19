@@ -7,7 +7,7 @@
 
 Server::Server() {}
 
-Server::~Server() {}
+Server::~Server() { close(m_serverSocket); }
 
 std::string Server::constructResponse(int code, std::string response) {
   std::string httpResponse = "HTTP/1.1 " + std::to_string(code) + " OK\r\n";
@@ -23,36 +23,35 @@ std::string Server::constructResponse(int code, std::string response) {
 void Server::run() {
   std::cout << "Running on http://" << m_host << ":" << m_port << std::endl;
 
-  int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-  if (serverSocket == -1) {
+  int m_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+  if (m_serverSocket == -1) {
     perror("socket failed");
     return;
   }
 
-  // Permet de redémarrer le serveur instantanément sur le même port
   int opt = 1;
-  setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+  setsockopt(m_serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
   sockaddr_in serverAddress;
   serverAddress.sin_family = AF_INET;
   serverAddress.sin_port = htons(m_port);
   serverAddress.sin_addr.s_addr = INADDR_ANY;
 
-  if (bind(serverSocket, (struct sockaddr *)&serverAddress,
+  if (bind(m_serverSocket, (struct sockaddr *)&serverAddress,
            sizeof(serverAddress)) < 0) {
     perror("bind failed");
-    close(serverSocket);
+    close(m_serverSocket);
     return;
   }
 
-  if (listen(serverSocket, 5) < 0) {
+  if (listen(m_serverSocket, 5) < 0) {
     perror("listen failed");
-    close(serverSocket);
+    close(m_serverSocket);
     return;
   }
 
   while (true) {
-    int clientSocket = accept(serverSocket, nullptr, nullptr);
+    int clientSocket = accept(m_serverSocket, nullptr, nullptr);
     if (clientSocket < 0) {
       perror("accept failed");
       continue;
@@ -67,11 +66,8 @@ void Server::run() {
       send(clientSocket, response.c_str(), response.length(), 0);
     }
 
-    // TRÈS IMPORTANT : Fermer le socket client après usage
     close(clientSocket);
   }
-
-  close(serverSocket); // Note: Inatteignable ici à cause du while(true)
 }
 
 void Server::setHost(std::string host) { m_host = host; }

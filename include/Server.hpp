@@ -14,4 +14,5 @@ public:
 private:
   std::string m_host = "localhost";
   int m_port = 8888;
+  int m_serverSocket;
 };
